@@ -1,327 +1,276 @@
 # 📡 IoT Sensor Anomaly Detection Pipeline
 
 ## 🚀 Project Overview
-This project builds a **real-time IoT data engineering pipeline** to monitor sensor data, detect anomalies, and generate operational insights for predictive maintenance.
 
-The pipeline ingests IoT sensor streams, processes them using **PySpark on Databricks**, stores them using **Delta Lake Medallion Architecture**, and produces analytics-ready datasets.
+The **IoT Sensor Anomaly Detection Pipeline** is an end-to-end Data Engineering project designed to process real-time IoT sensor data, detect anomalies, and generate actionable insights for monitoring and predictive maintenance.
 
-### Key Capabilities
-- Real-time IoT data ingestion
-- Data quality validation and cleansing
-- Sensor anomaly detection using statistical methods
-- Delta Lake storage with Bronze → Silver → Gold architecture
-- Aggregated device performance analytics
-- Alert generation for abnormal sensor behavior
+The pipeline follows the **Medallion Architecture (Bronze → Silver → Gold)** using the **Databricks Lakehouse platform**. Data is ingested from AWS services, processed using PySpark, stored in Delta Lake tables, and used for dashboards and alerting systems.
 
 ---
 
-# 🏗️ Architecture / ETL Pipeline Flow
+## 🎯 Project Objectives
 
-```
-IoT Sensor JSON Events (Amazon Kinesis)
-             ↓
-Databricks Streaming Ingestion
-             ↓
-Bronze Layer (Raw Data)
-iot_catalog.raw.sensor_readings
-             ↓
-Data Cleaning & Validation
-             ↓
-Silver Layer (Processed Data)
-iot_catalog.processed.valid_readings
-             ↓
-Anomaly Detection & Aggregations
-             ↓
-Gold Layer (Analytics Tables)
-iot_catalog.analytics.device_stats
-             ↓
-Monitoring Dashboards & Alerts
-```
+- IOT devices generate large volumes of sensor data continuously, requiring efficient real-time processing and monitoring.
+  
+- Without automated systems, detecting abnormal sensor behavior is difficult, leading to device failures, downtime, and operational losses.
+  
+- This project builds a scalable data pipeline to enable real-time anomaly detection and proactive monitoring of IoT systems.
+  
+- The main objectives of this project are:
+  
+- Build a real-time streaming data pipeline using Amazon Kinesis.
+  
+- Implement Medallion Architecture (Bronze, Silver, Gold layers) in Databricks. 
 
-Pipeline follows **Medallion Architecture** for scalable data processing.
+- Clean and transform raw IoT sensor data.
+
+- Apply anomaly detection techniques using Z-score.
+
+- Provide real-time dashboards for monitoring sensor health. 
+
+- Trigger Slack alerts for critical anomalies.
+
+- This enables proactive monitoring and predictive maintenance.
 
 ---
 
-# 🛠️ Tech Stack
+
+
+## 🏗 System Architecture
+
+The pipeline follows a modern Lakehouse Data Engineering Architecture.
+
+![system architecture](https://github.com/user-attachments/assets/27ba320e-68c6-4a72-b6be-c888fb08272b)
+
+
+
+---
+
+## 🛠 Technology Stack
 
 | Technology | Purpose |
 |------------|--------|
+| AWS S3 | Data Lake Storage |
+| Amazon Kinesis | Real-time Data Streaming |
+| AWS Data Firehose | Data Delivery |
+| AWS Lambda | Stream Processing |
 | Databricks | Data Engineering Platform |
 | PySpark | Distributed Data Processing |
-| Delta Lake | Reliable Data Storage |
-| Amazon Kinesis | Real-time IoT data streaming |
-| AWS S3 | Raw data storage |
-| Unity Catalog | Data governance |
-| Slack | Alert notifications |
-| GitHub | Version control |
+| Delta Lake | Storage Format |
+| Unity Catalog | Data Governance |
+| DBT | Advanced Transformations & Modelling|
+| Apache Airflow | Pipeline Orchestration |
+| Slack | Alert Notifications |
+| Git | Version Control |
 
 ---
 
-# 📂 Project Structure
+## 📂 Dataset
 
-```
-IoT-Anomaly-Pipeline/
-│
-├── datasets/                     # IoT sensor datasets
-├── notebooks/
-│   ├── 01_ingestion_bronze.py
-│   ├── 02_transformation_silver.py
-│   └── 03_anomaly_detection_gold.py
-│
-├── schemas/                      # JSON schema definitions
-├── sql/                          # Analytics SQL queries
-├── configs/                      # Pipeline configurations
-├── images/                       # Architecture diagrams
-├── tests/                        # Unit tests
-│
-├── requirements.txt
-└── README.md
-```
+Dataset Used: **AnoML IoT Dataset (Kaggle)**
 
----
+Includes:
+- Device_health_diagnostics
+ 
+- Device_Operations
+  
+- Environment_network
+  
+- Sensor_Stream
+  
+- Time_Anomoly_Events
 
-# 📌 Problem Statement
+Dataset Raw CSV Files Path: 
+s3://iot-sensor-raw-anamoly/time_anomaly_events_dataset.csv
 
-Modern IoT systems generate **high-volume streaming sensor data** that must be continuously monitored to detect abnormal patterns.
-
-This pipeline solves the following problems:
-
-### 🔹 Real-Time Monitoring
-- Ingest IoT sensor data from streaming sources
-- Process high-velocity sensor readings
-
-### 🔹 Data Quality Validation
-- Remove corrupted records
-- Validate sensor ranges
-
-### 🔹 Anomaly Detection
-- Identify abnormal temperature or humidity values
-- Detect device malfunctions early
-
-### 🔹 Predictive Maintenance
-- Identify failing sensors before downtime occurs
+DataSets Parquet Files Path:
+s3://iot-sensor-target/YYYY/MM/DD/NN/
 
 ---
 
-# ⚙️ Business Rules Implemented
+## 🏗 Data Pipeline Layers
 
-## 1️⃣ Data Quality Validation
+### 🥉 Bronze Layer – Raw Data Ingestion
 
-| Field | Rule |
-|------|------|
-| temperature | Must be within valid sensor range |
-| humidity | Must be between 0–100 |
-| device_id | Cannot be null |
-| timestamp | Must contain valid event time |
+- Ingested IoT dataset (CSV / streaming)  
+- Stored raw data in AWS S3  
+- Loaded into Delta tables  
+- Preserved original schema  
+- Added ingestion metadata
 
-Invalid records are filtered during the **Silver transformation stage**.
-
----
-
-## 2️⃣ Sensor Reading Validation
-
-```
-temperature > -50 AND temperature < 150
-humidity >= 0 AND humidity <= 100
-pressure > 0
-```
-
-Invalid sensor readings are discarded or logged.
+| Bronze Tables |
+|---------------|
+| sensor_stream |
+| device_operations |
+| environment_network |
+| time_anomaly_events |
+| device_health_diag |
 
 ---
 
-## 3️⃣ Anomaly Detection Logic
+### 🥈 Silver Layer – Data Cleaning & Transformation
 
-Anomalies are detected using **Z-score statistical method**.
+- Removed null and invalid records  
+- Standardized column formats  
+- Performed data validation checks  
+- Applied transformations using PySpark    
+- Enriched IoT data  
 
-```
-z_score = (value - mean) / stddev
-```
-
-| Condition | Status |
-|-----------|--------|
-| z_score > 3 | ANOMALY |
-| z_score < -3 | ANOMALY |
-| Otherwise | NORMAL |
-
----
-
-# 📊 Key Metrics Calculated
-
-The pipeline generates multiple analytical metrics:
-
-- Sensor temperature averages
-- Humidity trends
-- Device performance statistics
-- Rolling 5-minute averages
-- Anomaly rate per device
-- Sensor health indicators
+| Silver Tables |
+|---------------|
+| sensor_stream_clean |
+| device_operations_clean |
+| environment_network_clean |
+| time_anomaly_events_clean |
+| device_health_clean |
 
 ---
 
-# 📊 Data Model
+### 🥇 Gold Layer – Analytics & Insights
 
-### Dimension Tables
+- Created aggregated device metrics  
+- Generated anomaly indicators (Normal, Warning, Critical)  
+- Built monitoring datasets
+- Calculated anomaly metrics (Z-score)
+- Prepared data for dashboards  
+- Enabled real-time anomaly tracking  
 
-**dim_sensor_master**
+![star schema](https://github.com/user-attachments/assets/19506dd0-fd22-467c-90e5-dec112b62f8d)
 
-**dim_device**
 
-**dim_environment**
-
-**dim_time**
-
----
-
-### Fact Table
-
-**fact_sensor_readings**
-
----
-
-# 📊 Analytics Queries
-
-### 🔹 Devices With Highest Anomaly Rate
+| Gold Tables |
+|-------------|
+| dim_device |
+| dim_location |
+| dim_sensor |
+| dim_time |
+| fact_device_monitoring |
 
 ---
 
-### 🔹 Average Sensor Temperature
+## 📊 Business Insights
+
+### Descriptive Analytics
+- Sensor readings trend  
+- Device activity monitoring  
+- Total anomaly events  
+
+### Diagnostic Analytics
+- Device health vs anomalies  
+- Downtime analysis  
+- Network performance impact  
+
+### Advanced Analytics
+- Critical device identification  
+- Anomaly pattern detection  
+- Device performance trends  
 
 ---
 
-### 🔹 Anomaly Rate by Location
+## 📊 Dashboards
+
+- Critical Alerts
+
+- Critical Device Monitoring
+
+- Sensor Status Distribution
+
+- Sensor Reading Trend
+
+- Anomoly detection Pattern By Time
+
+![Total Critical Alerts](https://github.com/user-attachments/assets/a45ca803-e679-4cff-9d36-789be9760cdf)
+
+![Anomoly Detection Pattern By Time](https://github.com/user-attachments/assets/6e4e758a-ff42-49bc-8074-f3a5e789cb3d)
+
+![Sensor Status Distribution](https://github.com/user-attachments/assets/ea1f5d63-e5d9-47e0-b3e5-2f06dcf55e1f)
+
+![Critical Device Monitoring](https://github.com/user-attachments/assets/a82d2dbe-8c69-4830-9dc6-ec75cb283786)
+
+![Sensor Reading Trend](https://github.com/user-attachments/assets/97979f63-8d54-495b-8052-7e4986995586)
+
+
+
 
 ---
 
-# ⚡ Streaming Configuration
+## 🔄 Pipeline Orchestration
 
-Pipeline runs using **Databricks Structured Streaming**.
+The pipeline execution is automated using Apache Airflow and Databricks Workflows.
 
-| Setting | Value |
-|------|------|
-| Trigger Mode | Micro-batch |
-| Batch Interval | 10 seconds |
-| Checkpointing | Enabled |
-| Fault Tolerance | Delta Lake |
+Schedule:
+Continuous Streaming / Micro-batch Processing (every 10 seconds)
 
----
+Workflow tasks include:
 
-# 🔔 Alerting & Monitoring
-
-The pipeline generates alerts when anomaly rates exceed thresholds.
-
-Alert mechanisms include:
-
-- Slack notifications for anomaly spikes
-- Logging errors to `anomaly_log` table
-- Databricks job monitoring
+1. Data ingestion from AWS Kinesis / S3
+2. Bronze layer processing (raw data storage)
+3. Silver layer transformation (cleaning & validation)
+4. Gold layer processing (aggregation & anomaly detection)
+5. Data quality checks and validation
+6. Real-time anomaly detection using Z-score
+7. Slack alert notifications for critical anomalies
+8. Logging pipeline execution and monitoring
 
 ---
 
-# 🧪 Testing Strategy
+## ⚠ Alerts, Monitoring & Logging
 
-Pipeline validation includes:
-
-- Unit tests for anomaly detection logic
-- Schema validation tests
-- Batch validation with Kaggle IoT datasets
-- QA approval before production deployment
+- Slack alerts for critical anomalies  
+- Airflow monitoring for pipeline runs  
+- Logging for debugging and tracking  
+- Real-time anomaly monitoring  
 
 ---
 
-# 🧮 How to Run This Project
+## ✅ Data Quality & Testing
 
-## 1️⃣ Clone Repository
-
-```bash
-git clone https://github.com/Mahendermaahi/-IoT-Sensor-Anomaly-Detection-Pipeline
-cd iot-anomaly-pipeline
-```
-
----
-
-## 2️⃣ Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
+- PyTest validation for all layers  
+- Schema validation  
+- Row count checks  
+- Duplicate detection  
+- Data quality validation  
 
 ---
 
-## 3️⃣ Configure Databricks
+## 👨‍💻 My Role
 
-Create a cluster with the following configuration:
+Role: Data Engineer (Analytics / Testing / Monitoring)
 
-```
-Node Type: m5.xlarge
-Workers: 8 – 32
-Runtime: Databricks Runtime for Apache Spark
-Libraries:
-- pyspark
-- delta-spark
-- aws-kinesis-spark
-```
+- Developed Gold layer analytics tables and implemented anomaly detection logic (Z-score)
+  
+- Created aggregated metrics for device monitoring and real-time dashboards
 
----
+- Performed data quality checks across Bronze, Silver, and Gold layers
 
-## 4️⃣ Run Databricks Notebooks
+- Validated schema, null values, and duplicate records using Pytest
 
-Execute notebooks in the following order:
+- Integrated Slack alerts using Webhook API for anomaly and failure notifications
 
-```
-01_ingestion_bronze
-02_transformation_silver
-03_anomaly_detection_gold
-```
+- Logged pipeline errors and monitored execution for reliability
+
+- Ensured accuracy of analytics results and supported real-time monitoring
 
 ---
 
-# 📦 requirements.txt
+## 📈 Key Outcomes
 
-```
-pyspark
-delta-spark
-aws-kinesis-spark
-pandas
-numpy
-matplotlib
-seaborn
-```
+- Real-time IoT anomaly detection  
+- Reduced device failure risks  
+- Scalable pipeline architecture  
+- Analytics-ready datasets  
 
 ---
 
-# 📈 Outcome
+## 🔮 Future Enhancements
 
-This project demonstrates:
-
-- Scalable real-time IoT data pipeline
-- Clean and validated sensor datasets
-- Automated anomaly detection
-- Delta Lake optimized storage
-- Analytical tables for monitoring dashboards
+- Machine learning-based anomaly detection  
+- Kafka-based streaming  
+- Power BI dashboards  
+- CI/CD for data pipelines  
 
 ---
 
-# 🚀 Future Enhancements
+## 📌 Conclusion
 
-Planned improvements:
-
-- Machine learning anomaly detection models
-- Predictive maintenance using ML
-- Real-time dashboards using Streamlit
-- Apache Airflow orchestration
-- Integration with live IoT device APIs
-
----
-
-# 👨‍💻 Author
-
-**Mahender Reddy Lyagala**
-
-Data Engineering | Big Data | IoT Analytics | PySpark | SQL | Cloud Data Platforms
-
----
-
-# ⭐ Support
-
-If you found this project helpful, give it a ⭐ on GitHub!
+This project demonstrates a scalable **IoT anomaly detection pipeline** using modern Data Engineering tools and Lakehouse architecture, enabling real-time monitoring and proactive decision-making.
