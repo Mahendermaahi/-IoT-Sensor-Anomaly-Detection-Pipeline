@@ -237,19 +237,21 @@ Workflow tasks include:
 
 Role: Data Engineer (Analytics / Testing / Monitoring)
 
-- Developed Gold layer analytics tables and implemented anomaly detection logic (Z-score)
-  
-- Created aggregated metrics for device monitoring and real-time dashboards
+- Built and optimized data pipelines in Databricks using PySpark to process and transform IoT sensor data across Bronze, Silver, and Gold layers.
 
-- Performed data quality checks across Bronze, Silver, and Gold layers
+- Implemented robust data validation and quality checks to ensure accuracy and reliability of streaming data.
 
-- Validated schema, null values, and duplicate records using Pytest
+- Designed and processed real-time data streams by parsing JSON data into structured, analytics-ready formats.
 
-- Integrated Slack alerts using Webhook API for anomaly and failure notifications
+- Orchestrated end-to-end workflows using Apache Airflow (DAGs) for scheduling, monitoring, and automation of data pipelines.
 
-- Logged pipeline errors and monitored execution for reliability
+- Integrated Amazon Kinesis with Databricks for near real-time data ingestion and processing.
 
-- Ensured accuracy of analytics results and supported real-time monitoring
+- Performed pipeline testing, debugging, and validation to ensure consistent data flow and accurate anomaly detection.
+
+- Monitored pipeline performance and handled failures to maintain high availability and reliability.
+
+- Collaborated using Git for version control and contributed to building scalable, production-ready data solutions.
 
 ---
 
